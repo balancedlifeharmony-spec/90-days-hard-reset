@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>90-Day Hard Reset Tracker</title>
+<meta name="theme-color" content="#111827">
+<style>
+  :root{
+    --bg:#0b1020; --card:#111827; --muted:#6b7280; --text:#e5e7eb; --brand:#22c55e; --accent:#38bdf8; --warn:#f59e0b;
+    --ring: 0 0 0 3px rgba(34,197,94,.25);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--text); background:
+      radial-gradient(1200px 600px at 20% -10%, #1f2937 0%, transparent 60%),
+      radial-gradient(1000px 500px at 120% 20%, #0ea5e9 0%, transparent 55%),
+      linear-gradient(180deg,#0b1020 0%,#0b1020 100%), var(--bg);
+    min-height:100%;
+  }
+  .wrap{max-width:980px;margin-inline:auto;padding:20px}
+  header{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+  h1{font-size:clamp(22px,3.5vw,32px);margin:0;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:13px}
+  .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .pill{background:#0f172a;border:1px solid #1f2937;color:#cbd5e1;border-radius:999px;padding:8px 12px;font-size:12px}
+  button,input,textarea,select{
+    background:#0f172a;color:var(--text);border:1px solid #1f2937;border-radius:10px;padding:10px 12px;
+    font:inherit;outline:none;
+  }
+  button:hover{border-color:#334155}
+  button.primary{background:linear-gradient(180deg,#22c55e,#16a34a);border-color:#16a34a;color:#052e14}
+  button.ghost{background:transparent;border:1px dashed #334155}
+  button:focus-visible{box-shadow:var(--ring)}
+  .grid{display:grid;gap:16px}
+  @media(min-width:800px){ .grid{grid-template-columns:1.2fr .8fr} }
+  .card{background:rgba(17,24,39,.7);backdrop-filter:blur(6px);border:1px solid #243042;border-radius:18px;padding:16px 16px 6px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+  .card h2{margin:4px 0 6px;font-size:18px}
+  .card .hint{color:var(--muted);font-size:12px;margin:6px 0 8px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .stack{display:flex;flex-direction:column;gap:8px}
+  .kpi{display:flex;gap:10px;align-items:center}
+  .kpi .n{font-weight:700;font-size:18px}
+  .progress{height:10px;background:#0b1222;border-radius:999px;overflow:hidden;border:1px solid #1f2937}
+  .progress>i{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#06b6d4)}
+  .list{display:grid;gap:8px;margin:12px 0}
+  .item{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid #1f2937;border-radius:12px;background:#0d1427}
+  .item input[type=checkbox]{width:20px;height:20px;margin-top:2px;accent-color:#22c55e}
+  .item label{flex:1;line-height:1.35}
+  .mini{font-size:12px;color:#93a2b8}
+  textarea{min-height:94px;resize:vertical}
+  .divider{height:1px;background:#1f2937;margin:12px 0}
+  .foot{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
+  .tag{display:inline-block;padding:6px 10px;border-radius:999px;background:#0b1222;border:1px solid #1f2937;font-size:11px;color:#cbd5e1}
+  .danger{border-color:#7f1d1d;color:#fecaca}
+  .ok{border-color:#14532d;color:#bbf7d0}
+  .accent{color:#67e8f9}
+  .muted{color:#9ca3af}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* --- Help Modal --- */
+  .modal-backdrop{
+    position:fixed; inset:0; z-index:1000;
+    background:rgba(0,0,0,.6); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-backdrop.open{display:flex}
+  .modal-card{
+    background:#111827;color:var(--text);width:min(720px,100%);
+    border:1px solid #243042;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.5);
+    max-height:90vh;overflow:auto;padding:18px 18px 16px;
+  }
+  .modal-card h2{margin:4px 0 8px;font-size:20px}
+  .modal-card .mini{color:var(--muted);font-size:13px;margin-bottom:8px}
+  .modal-card ol{padding-left:18px;line-height:1.6}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>90-Day Hard Reset</h1>
+        <div class="sub">Clean up diet • Create a mission • Sweat daily • Avoid cheap dopamine • Fix sleep • Track results</div>
+      </div>
+      <div class="bar">
+        <input id="start" type="date"/>
+        <button id="resetDay" title="Mark all today unchecked">Reset Today</button>
+        <button id="exportBtn">Export</button>
+        <button id="helpBtn" class="ghost" aria-haspopup="dialog" aria-controls="helpModal">❓ Help</button>
+        <label class="pill">
+          <input id="importFile" type="file" accept="application/json" class="sr-only">
+          <span>Import</span>
+        </label>
+      </div>
+    </header>
+
+    <!-- main app grid ... (unchanged from your original code) -->
+
+    <div class="grid">
+      <!-- Daily tracker and sidebar go here (omitted for brevity, unchanged from original code you pasted) -->
+    </div>
+
+    <!-- metrics and footer go here ... -->
+
+  </div>
+
+  <!-- Help Modal -->
+  <div id="helpModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="modal-card" role="document">
+      <h2 id="helpTitle">🚀 Quick Start Guide</h2>
+      <p class="mini">How to use the 90-Day Hard Reset Tracker.</p>
+      <ol>
+        <li><b>Set Your Start Date 📅</b> — Use the date picker in the header. Day 1 begins here.</li>
+        <li><b>Define Your Mission 🎯</b> — In the right sidebar, write your 90-day goal, one worthy project, and add 1–3 metrics to track.</li>
+        <li><b>Daily Routine 🔄</b> — In the “Today” card: check the 6 commitments, write in your journal, enter your metric values.</li>
+        <li><b>Weekly Reflection 📓</b> — Every 7 days: record wins, misses, lessons and list next week’s critical tasks.</li>
+        <li><b>Track Progress 📈</b> — The day counter, streak, done count, and progress bar show momentum.</li>
+        <li><b>Manage Data 💾</b> — Export/Import your data, use “Reset Today”, and share a daily summary.</li>
+        <li><b>Offline & Privacy 🔒</b> — Works offline. Your data stays in your browser.</li>
+      </ol>
+      <p class="mini">✨ Tip: Follow the <b>3-2-1 sleep rule</b> — no food 3h, no liquids 2h, no screens 1h before bed.</p>
+      <div class="modal-actions">
+        <button id="closeHelp" class="primary">Close</button>
+        <button id="closeHelpGhost" class="ghost">Got it</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ... your existing JS code for tasks, state, events, service worker (unchanged) ... */
+
+/* ----------------------- Help Modal ----------------------- */
+const helpModal = document.getElementById('helpModal');
+const helpBtnEl = document.getElementById('helpBtn');
+const helpCloseEls = [document.getElementById('closeHelp'), document.getElementById('closeHelpGhost')];
+
+function openHelp(){
+  helpModal.classList.add('open');
+  helpModal.querySelector('.modal-card').setAttribute('tabindex','-1');
+  helpModal.querySelector('.modal-card').focus();
+}
+function closeHelp(){
+  helpModal.classList.remove('open');
+  helpBtnEl.focus();
+}
+
+helpBtnEl.addEventListener('click', openHelp);
+helpCloseEls.forEach(btn => btn.addEventListener('click', closeHelp));
+helpModal.addEventListener('click', (e)=>{ if(e.target===helpModal) closeHelp(); });
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && helpModal.classList.contains('open')) closeHelp(); });
+</script>
+</body>
+</html>
